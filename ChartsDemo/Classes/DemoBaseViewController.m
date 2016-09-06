@@ -2,13 +2,11 @@
 //  DemoBaseViewController.m
 //  ChartsDemo
 //
-//  Created by Daniel Cohen Gindi on 13/3/15.
-//
 //  Copyright 2015 Daniel Cohen Gindi & Philipp Jahoda
 //  A port of MPAndroidChart for iOS
 //  Licensed under Apache License 2.0
 //
-//  https://github.com/danielgindi/ios-charts
+//  https://github.com/danielgindi/Charts
 //
 
 #import "DemoBaseViewController.h"
@@ -45,11 +43,6 @@
 {
     self.edgesForExtendedLayout = UIRectEdgeNone;
     
-    months = @[
-        @"Jan", @"Feb", @"Mar", @"Apr", @"May", @"Jun", @"Jul", @"Aug", @"Sep",
-        @"Oct", @"Nov", @"Dec"
-        ];
-    
     parties = @[
         @"Party A", @"Party B", @"Party C", @"Party D", @"Party E", @"Party F",
         @"Party G", @"Party H", @"Party I", @"Party J", @"Party K", @"Party L",
@@ -74,6 +67,82 @@
 - (void)optionTapped:(NSString *)key
 {
     
+}
+
+#pragma mark - Common option actions
+
+- (void)handleOption:(NSString *)key forChartView:(ChartViewBase *)chartView
+{
+    if ([key isEqualToString:@"toggleValues"])
+    {
+        for (id<IChartDataSet> set in chartView.data.dataSets)
+        {
+            set.drawValuesEnabled = !set.isDrawValuesEnabled;
+        }
+        
+        [chartView setNeedsDisplay];
+    }
+    
+    if ([key isEqualToString:@"toggleHighlight"])
+    {
+        chartView.data.highlightEnabled = !chartView.data.isHighlightEnabled;
+        [chartView setNeedsDisplay];
+    }
+    
+    if ([key isEqualToString:@"animateX"])
+    {
+        [chartView animateWithXAxisDuration:3.0];
+    }
+    
+    if ([key isEqualToString:@"animateY"])
+    {
+        [chartView animateWithYAxisDuration:3.0];
+    }
+    
+    if ([key isEqualToString:@"animateXY"])
+    {
+        [chartView animateWithXAxisDuration:3.0 yAxisDuration:3.0];
+    }
+    
+    if ([key isEqualToString:@"saveToGallery"])
+    {
+        [chartView saveToCameraRoll];
+    }
+    
+    if ([key isEqualToString:@"togglePinchZoom"])
+    {
+        BarLineChartViewBase *barLineChart = (BarLineChartViewBase *)chartView;
+        barLineChart.pinchZoomEnabled = !barLineChart.isPinchZoomEnabled;
+        
+        [chartView setNeedsDisplay];
+    }
+    
+    if ([key isEqualToString:@"toggleAutoScaleMinMax"])
+    {
+        BarLineChartViewBase *barLineChart = (BarLineChartViewBase *)chartView;
+        barLineChart.autoScaleMinMaxEnabled = !barLineChart.isAutoScaleMinMaxEnabled;
+        
+        [chartView notifyDataSetChanged];
+    }
+    
+    if ([key isEqualToString:@"toggleData"])
+    {
+        _shouldHideData = !_shouldHideData;
+        [self updateChartData];
+    }
+    
+    if ([key isEqualToString:@"toggleBarBorders"])
+    {
+        for (id<IBarChartDataSet, NSObject> set in chartView.data.dataSets)
+        {
+            if ([set conformsToProtocol:@protocol(IBarChartDataSet)])
+            {
+                set.barBorderWidth = set.barBorderWidth == 1.0 ? 0.0 : 1.0;
+            }
+        }
+        
+        [chartView setNeedsDisplay];
+    }
 }
 
 #pragma mark - Actions
@@ -182,10 +251,15 @@
 
 #pragma mark - Stubs for chart view
 
+- (void)updateChartData
+{
+    // Override this
+}
+
 - (void)setupPieChartView:(PieChartView *)chartView
 {
     chartView.usePercentValuesEnabled = YES;
-    chartView.holeTransparent = YES;
+    chartView.drawSlicesUnderHoleEnabled = NO;
     chartView.holeRadiusPercent = 0.58;
     chartView.transparentCircleRadiusPercent = 0.61;
     chartView.descriptionText = @"";
@@ -197,17 +271,17 @@
     paragraphStyle.lineBreakMode = NSLineBreakByTruncatingTail;
     paragraphStyle.alignment = NSTextAlignmentCenter;
     
-    NSMutableAttributedString *centerText = [[NSMutableAttributedString alloc] initWithString:@"iOS Charts\nby Daniel Cohen Gindi"];
+    NSMutableAttributedString *centerText = [[NSMutableAttributedString alloc] initWithString:@"Charts\nby Daniel Cohen Gindi"];
     [centerText setAttributes:@{
-                                NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Light" size:12.f],
+                                NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Light" size:13.f],
                                 NSParagraphStyleAttributeName: paragraphStyle
                                 } range:NSMakeRange(0, centerText.length)];
     [centerText addAttributes:@{
-                                NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Light" size:10.f],
+                                NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Light" size:11.f],
                                 NSForegroundColorAttributeName: UIColor.grayColor
                                 } range:NSMakeRange(10, centerText.length - 10)];
     [centerText addAttributes:@{
-                                NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-LightItalic" size:10.f],
+                                NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-LightItalic" size:11.f],
                                 NSForegroundColorAttributeName: [UIColor colorWithRed:51/255.f green:181/255.f blue:229/255.f alpha:1.f]
                                 } range:NSMakeRange(centerText.length - 19, 19)];
     chartView.centerAttributedText = centerText;
@@ -241,8 +315,7 @@
     [chartView setScaleEnabled:YES];
     chartView.pinchZoomEnabled = NO;
     
-    ChartYAxis *leftAxis = chartView.leftAxis;
-    leftAxis.startAtZeroEnabled = NO;
+    // ChartYAxis *leftAxis = chartView.leftAxis;
     
     ChartXAxis *xAxis = chartView.xAxis;
     xAxis.labelPosition = XAxisLabelPositionBottom;

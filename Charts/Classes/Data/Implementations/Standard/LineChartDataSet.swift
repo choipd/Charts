@@ -2,25 +2,32 @@
 //  LineChartDataSet.swift
 //  Charts
 //
-//  Created by Daniel Cohen Gindi on 26/2/15.
-//
 //  Copyright 2015 Daniel Cohen Gindi & Philipp Jahoda
 //  A port of MPAndroidChart for iOS
 //  Licensed under Apache License 2.0
 //
-//  https://github.com/danielgindi/ios-charts
+//  https://github.com/danielgindi/Charts
 //
 
 import Foundation
 import CoreGraphics
-import UIKit
+
 
 public class LineChartDataSet: LineRadarChartDataSet, ILineChartDataSet
 {
+    @objc(LineChartMode)
+    public enum Mode: Int
+    {
+        case Linear
+        case Stepped
+        case CubicBezier
+        case HorizontalBezier
+    }
+    
     private func initialize()
     {
         // default color
-        circleColors.append(UIColor(red: 140.0/255.0, green: 234.0/255.0, blue: 255.0/255.0, alpha: 1.0))
+        circleColors.append(NSUIColor(red: 140.0/255.0, green: 234.0/255.0, blue: 255.0/255.0, alpha: 1.0))
     }
     
     public required init()
@@ -29,15 +36,20 @@ public class LineChartDataSet: LineRadarChartDataSet, ILineChartDataSet
         initialize()
     }
     
-    public override init(yVals: [ChartDataEntry]?, label: String?)
+    public override init(values: [ChartDataEntry]?, label: String?)
     {
-        super.init(yVals: yVals, label: label)
+        super.init(values: values, label: label)
         initialize()
     }
     
     // MARK: - Data functions and accessors
     
     // MARK: - Styling functions and accessors
+    
+    /// The drawing mode for this line dataset
+    ///
+    /// **default**: Linear
+    public var mode: Mode = Mode.Linear
     
     private var _cubicIntensity = CGFloat(0.2)
     
@@ -64,29 +76,59 @@ public class LineChartDataSet: LineRadarChartDataSet, ILineChartDataSet
         }
     }
     
-    /// If true, cubic lines are drawn instead of linear
-    public var drawCubicEnabled = false
+    @available(*, deprecated=1.0, message="Use `mode` instead.")
+    public var drawCubicEnabled: Bool
+    {
+        get
+        {
+            return mode == .CubicBezier
+        }
+        set
+        {
+            mode = newValue ? LineChartDataSet.Mode.CubicBezier : LineChartDataSet.Mode.Linear
+        }
+    }
     
-    /// - returns: true if drawing cubic lines is enabled, false if not.
+    @available(*, deprecated=1.0, message="Use `mode` instead.")
     public var isDrawCubicEnabled: Bool { return drawCubicEnabled }
     
+
     /// If true, gradient lines are drawn instead of solid
     public var drawGradientEnabled = false
     
     /// - returns: true if drawing gradeint lines is enabled, false if not.
     public var isDrawGradientEnabled: Bool { return drawGradientEnabled }
+
+    @available(*, deprecated=1.0, message="Use `mode` instead.")
+    public var drawSteppedEnabled: Bool
+    {
+        get
+        {
+            return mode == .Stepped
+        }
+        set
+        {
+            mode = newValue ? LineChartDataSet.Mode.Stepped : LineChartDataSet.Mode.Linear
+        }
+    }
+    
+    @available(*, deprecated=1.0, message="Use `mode` instead.")
+    public var isDrawSteppedEnabled: Bool { return drawSteppedEnabled }
     
     /// The radius of the drawn circles.
     public var circleRadius = CGFloat(8.0)
     
-    public var circleColors = [UIColor]()
+    /// The hole radius of the drawn circles
+    public var circleHoleRadius = CGFloat(4.0)
     
-    /// - returns: the color at the given index of the DataSet's circle-color array.
+    public var circleColors = [NSUIColor]()
+    
+    /// - returns: The color at the given index of the DataSet's circle-color array.
     /// Performs a IndexOutOfBounds check by modulus.
-    public func getCircleColor(var index: Int) -> UIColor?
+    public func getCircleColor(index: Int) -> NSUIColor?
     {
         let size = circleColors.count
-        index = index % size
+        let index = index % size
         if (index >= size)
         {
             return nil
@@ -96,10 +138,16 @@ public class LineChartDataSet: LineRadarChartDataSet, ILineChartDataSet
     
     /// Sets the one and ONLY color that should be used for this DataSet.
     /// Internally, this recreates the colors array and adds the specified color.
-    public func setCircleColor(color: UIColor)
+    public func setCircleColor(color: NSUIColor)
     {
         circleColors.removeAll(keepCapacity: false)
         circleColors.append(color)
+    }
+    
+    public func setCircleColors(colors: NSUIColor...)
+    {
+        circleColors.removeAll(keepCapacity: false)
+        circleColors.appendContentsOf(colors)
     }
     
     /// Resets the circle-colors array and creates a new one
@@ -111,16 +159,16 @@ public class LineChartDataSet: LineRadarChartDataSet, ILineChartDataSet
     /// If true, drawing circles is enabled
     public var drawCirclesEnabled = true
     
-    /// - returns: true if drawing circles for this DataSet is enabled, false if not
+    /// - returns: `true` if drawing circles for this DataSet is enabled, `false` ifnot
     public var isDrawCirclesEnabled: Bool { return drawCirclesEnabled }
     
     /// The color of the inner circle (the circle-hole).
-    public var circleHoleColor = UIColor.whiteColor()
+    public var circleHoleColor: NSUIColor? = NSUIColor.whiteColor()
     
-    /// True if drawing circles for this DataSet is enabled, false if not
+    /// `true` if drawing circles for this DataSet is enabled, `false` ifnot
     public var drawCircleHoleEnabled = true
     
-    /// - returns: true if drawing the circle-holes is enabled, false if not.
+    /// - returns: `true` if drawing the circle-holes is enabled, `false` ifnot.
     public var isDrawCircleHoleEnabled: Bool { return drawCircleHoleEnabled }
     
     /// This is how much (in pixels) into the dash pattern are we starting from.
@@ -134,12 +182,14 @@ public class LineChartDataSet: LineRadarChartDataSet, ILineChartDataSet
     /// This is the points where gradient should change color
     public var gradientPositions: [CGFloat]?
     
-    /// formatter for customizing the position of the fill-line
-    private var _fillFormatter: ChartFillFormatter = BarLineChartFillFormatter()
-
+    /// Line cap type, default is CGLineCap.Butt
+    public var lineCapType = CGLineCap.Butt
     
-    /// Sets a custom FillFormatter to the chart that handles the position of the filled-line for each DataSet. Set this to null to use the default logic.
-    public var fillFormatter: ChartFillFormatter?
+    /// formatter for customizing the position of the fill-line
+    private var _fillFormatter: IFillFormatter = DefaultFillFormatter()
+    
+    /// Sets a custom IFillFormatter to the chart that handles the position of the filled-line for each DataSet. Set this to null to use the default logic.
+    public var fillFormatter: IFillFormatter?
     {
         get
         {
@@ -149,7 +199,7 @@ public class LineChartDataSet: LineRadarChartDataSet, ILineChartDataSet
         {
             if newValue == nil
             {
-                _fillFormatter = BarLineChartFillFormatter()
+                _fillFormatter = DefaultFillFormatter()
             }
             else
             {
@@ -168,9 +218,11 @@ public class LineChartDataSet: LineRadarChartDataSet, ILineChartDataSet
         copy.cubicIntensity = cubicIntensity
         copy.lineDashPhase = lineDashPhase
         copy.lineDashLengths = lineDashLengths
+        copy.lineCapType = lineCapType
         copy.drawCirclesEnabled = drawCirclesEnabled
-        copy.drawCubicEnabled = drawCubicEnabled
         copy.drawGradientEnabled = drawGradientEnabled
+        copy.drawCircleHoleEnabled = drawCircleHoleEnabled
+        copy.mode = mode
         return copy
     }
 }

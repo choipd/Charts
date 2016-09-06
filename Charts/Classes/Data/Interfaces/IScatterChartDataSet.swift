@@ -2,16 +2,15 @@
 //  IScatterChartDataSet.swift
 //  Charts
 //
-//  Created by Daniel Cohen Gindi on 26/2/15.
-//
 //  Copyright 2015 Daniel Cohen Gindi & Philipp Jahoda
 //  A port of MPAndroidChart for iOS
 //  Licensed under Apache License 2.0
 //
-//  https://github.com/danielgindi/ios-charts
+//  https://github.com/danielgindi/Charts
 //
 
 import Foundation
+import CoreGraphics
 
 @objc
 public protocol IScatterChartDataSet: ILineScatterCandleRadarChartDataSet
@@ -20,7 +19,18 @@ public protocol IScatterChartDataSet: ILineScatterCandleRadarChartDataSet
     
     // MARK: - Styling functions and accessors
     
-    var scatterShapeSize: CGFloat { get set }
-    var scatterShape: ScatterChartDataSet.ScatterShape { get set }
-    var customScatterShape: CGPath? { get set }
+    /// - returns: The size the scatter shape will have
+    var scatterShapeSize: CGFloat { get }
+    
+    /// - returns: The radius of the hole in the shape (applies to Square, Circle and Triangle)
+    /// Set this to <= 0 to remove holes.
+    /// **default**: 0.0
+    var scatterShapeHoleRadius: CGFloat { get }
+    
+    /// - returns: Color for the hole in the shape. Setting to `nil` will behave as transparent.
+    /// **default**: nil
+    var scatterShapeHoleColor: NSUIColor? { get }
+    
+    /// - returns: The IShapeRenderer responsible for rendering this DataSet.
+    var shapeRenderer: IShapeRenderer? { get }
 }

@@ -2,18 +2,16 @@
 //  LineRadarChartDataSet.swift
 //  Charts
 //
-//  Created by Daniel Cohen Gindi on 26/2/15.
-//
 //  Copyright 2015 Daniel Cohen Gindi & Philipp Jahoda
 //  A port of MPAndroidChart for iOS
 //  Licensed under Apache License 2.0
 //
-//  https://github.com/danielgindi/ios-charts
+//  https://github.com/danielgindi/Charts
 //
 
 import Foundation
 import CoreGraphics
-import UIKit
+
 
 public class LineRadarChartDataSet: LineScatterCandleRadarChartDataSet, ILineRadarChartDataSet
 {
@@ -22,10 +20,25 @@ public class LineRadarChartDataSet: LineScatterCandleRadarChartDataSet, ILineRad
     // MARK: - Styling functions and accessors
     
     /// The color that is used for filling the line surface area.
-    public var fillColor = UIColor(red: 140.0/255.0, green: 234.0/255.0, blue: 255.0/255.0, alpha: 1.0)
+    private var _fillColor = NSUIColor(red: 140.0/255.0, green: 234.0/255.0, blue: 255.0/255.0, alpha: 1.0)
+    
+    /// The color that is used for filling the line surface area.
+    public var fillColor: NSUIColor
+    {
+        get { return _fillColor }
+        set
+        {
+            _fillColor = newValue
+            fill = nil
+        }
+    }
+    
+    /// The object that is used for filling the area below the line.
+    /// **default**: nil
+    public var fill: Fill?
     
     /// The alpha value that is used for filling the line surface,
-    /// - default: 0.33
+    /// **default**: 0.33
     public var fillAlpha = CGFloat(0.33)
     
     private var _lineWidth = CGFloat(1.0)
@@ -56,8 +69,12 @@ public class LineRadarChartDataSet: LineScatterCandleRadarChartDataSet, ILineRad
         }
     }
     
+    /// Set to `true` if the DataSet should be drawn filled (surface), and not just as a line.
+    /// Disabling this will give great performance boost.
+    /// Please note that this method uses the path clipping for drawing the filled area (with images, gradients and layers).
     public var drawFilledEnabled = false
     
+    /// - returns: `true` if filled drawing is enabled, `false` ifnot
     public var isDrawFilledEnabled: Bool
     {
         return drawFilledEnabled

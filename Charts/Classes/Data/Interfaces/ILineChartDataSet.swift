@@ -2,16 +2,16 @@
 //  ILineChartDataSet.swift
 //  Charts
 //
-//  Created by Daniel Cohen Gindi on 26/2/15.
-//
 //  Copyright 2015 Daniel Cohen Gindi & Philipp Jahoda
 //  A port of MPAndroidChart for iOS
 //  Licensed under Apache License 2.0
 //
-//  https://github.com/danielgindi/ios-charts
+//  https://github.com/danielgindi/Charts
 //
 
 import Foundation
+import CoreGraphics
+
 
 @objc
 public protocol ILineChartDataSet: ILineRadarChartDataSet
@@ -20,15 +20,20 @@ public protocol ILineChartDataSet: ILineRadarChartDataSet
     
     // MARK: - Styling functions and accessors
     
+    /// The drawing mode for this line dataset
+    ///
+    /// **default**: Linear
+    var mode: LineChartDataSet.Mode { get set }
+    
     /// Intensity for cubic lines (min = 0.05, max = 1)
     ///
     /// **default**: 0.2
     var cubicIntensity: CGFloat { get set }
     
-    /// If true, cubic lines are drawn instead of linear
+    @available(*, deprecated=1.0, message="Use `mode` instead.")
     var drawCubicEnabled: Bool { get set }
     
-    /// - returns: true if drawing cubic lines is enabled, false if not.
+    @available(*, deprecated=1.0, message="Use `mode` instead.")
     var isDrawCubicEnabled: Bool { get }
     
     /// If true, gradient lines are drawn instead of solid
@@ -37,18 +42,27 @@ public protocol ILineChartDataSet: ILineRadarChartDataSet
     /// - returns: true if drawing gradeint lines is enabled, false if not.
     var isDrawGradientEnabled: Bool { get }
     
+    @available(*, deprecated=1.0, message="Use `mode` instead.")
+    var drawSteppedEnabled: Bool { get set }
+    
+    @available(*, deprecated=1.0, message="Use `mode` instead.")
+    var isDrawSteppedEnabled: Bool { get }
+
     /// The radius of the drawn circles.
     var circleRadius: CGFloat { get set }
     
-    var circleColors: [UIColor] { get set }
+    /// The hole radius of the drawn circles.
+    var circleHoleRadius: CGFloat { get set }
     
-    /// - returns: the color at the given index of the DataSet's circle-color array.
+    var circleColors: [NSUIColor] { get set }
+    
+    /// - returns: The color at the given index of the DataSet's circle-color array.
     /// Performs a IndexOutOfBounds check by modulus.
-    func getCircleColor(var index: Int) -> UIColor?
+    func getCircleColor(index: Int) -> NSUIColor?
     
     /// Sets the one and ONLY color that should be used for this DataSet.
     /// Internally, this recreates the colors array and adds the specified color.
-    func setCircleColor(color: UIColor)
+    func setCircleColor(color: NSUIColor)
     
     /// Resets the circle-colors array and creates a new one
     func resetCircleColors(index: Int)
@@ -56,16 +70,16 @@ public protocol ILineChartDataSet: ILineRadarChartDataSet
     /// If true, drawing circles is enabled
     var drawCirclesEnabled: Bool { get set }
     
-    /// - returns: true if drawing circles for this DataSet is enabled, false if not
+    /// - returns: `true` if drawing circles for this DataSet is enabled, `false` ifnot
     var isDrawCirclesEnabled: Bool { get }
     
     /// The color of the inner circle (the circle-hole).
-    var circleHoleColor: UIColor { get set }
+    var circleHoleColor: NSUIColor? { get set }
     
-    /// True if drawing circles for this DataSet is enabled, false if not
+    /// `true` if drawing circles for this DataSet is enabled, `false` ifnot
     var drawCircleHoleEnabled: Bool { get set }
     
-    /// - returns: true if drawing the circle-holes is enabled, false if not.
+    /// - returns: `true` if drawing the circle-holes is enabled, `false` ifnot.
     var isDrawCircleHoleEnabled: Bool { get }
     
     /// This is how much (in pixels) into the dash pattern are we starting from.
@@ -80,5 +94,9 @@ public protocol ILineChartDataSet: ILineRadarChartDataSet
     var gradientPositions: [CGFloat]? { get set }
     
     /// Sets a custom FillFormatter to the chart that handles the position of the filled-line for each DataSet. Set this to null to use the default logic.
-    var fillFormatter: ChartFillFormatter? { get set }
+    /// Line cap type, default is CGLineCap.Butt
+    var lineCapType: CGLineCap { get set }
+    
+    /// Sets a custom IFillFormatter to the chart that handles the position of the filled-line for each DataSet. Set this to null to use the default logic.
+    var fillFormatter: IFillFormatter? { get set }
 }

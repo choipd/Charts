@@ -2,13 +2,11 @@
 //  RealmPieChartViewController.m
 //  ChartsDemo
 //
-//  Created by Daniel Cohen Gindi on 17/3/15.
-//
 //  Copyright 2015 Daniel Cohen Gindi & Philipp Jahoda
 //  A port of MPAndroidChart for iOS
 //  Licensed under Apache License 2.0
 //
-//  https://github.com/danielgindi/ios-charts
+//  https://github.com/danielgindi/Charts
 //
 
 #import "RealmPieChartViewController.h"
@@ -30,7 +28,7 @@
     
     [self writeRandomPieDataToDb];
     
-    self.title = @"Realm.io Pie Chart Chart";
+    self.title = @"Realm.io Pie Chart";
     
     self.options = @[
                      @{@"key": @"toggleValues", @"label": @"Toggle Y-Values"},
@@ -80,7 +78,7 @@
     
     RLMResults *results = [RealmDemoData allObjectsInRealm:realm];
     
-    RealmPieDataSet *set = [[RealmPieDataSet alloc] initWithResults:results yValueField:@"value" xIndexField:@"xIndex"];
+    RealmPieDataSet *set = [[RealmPieDataSet alloc] initWithResults:results yValueField:@"yValue" labelField:@"label"];
     
     set.valueFont = [UIFont systemFontOfSize:9.f];
     set.colors = ChartColorTemplates.vordiplom;
@@ -89,7 +87,7 @@
     
     NSArray<id <IChartDataSet>> *dataSets = @[set];
     
-    RealmPieData *data = [[RealmPieData alloc] initWithResults:results xValueField:@"xValue" dataSets:dataSets];
+    PieChartData *data = [[PieChartData alloc] initWithDataSets:dataSets];
     [self styleData:data];
     data.valueTextColor = UIColor.whiteColor;
     data.valueFont = [UIFont fontWithName:@"HelveticaNeue-Light" size:12.f];
@@ -100,21 +98,12 @@
 
 - (void)optionTapped:(NSString *)key
 {
-    if ([key isEqualToString:@"toggleValues"])
-    {
-        for (id<IChartDataSet> set in _chartView.data.dataSets)
-        {
-            set.drawValuesEnabled = !set.isDrawValuesEnabled;
-        }
-        
-        [_chartView setNeedsDisplay];
-    }
-    
     if ([key isEqualToString:@"toggleXValues"])
     {
         _chartView.drawSliceTextEnabled = !_chartView.isDrawSliceTextEnabled;
         
         [_chartView setNeedsDisplay];
+        return;
     }
     
     if ([key isEqualToString:@"togglePercent"])
@@ -122,6 +111,7 @@
         _chartView.usePercentValuesEnabled = !_chartView.isUsePercentValuesEnabled;
         
         [_chartView setNeedsDisplay];
+        return;
     }
     
     if ([key isEqualToString:@"toggleHole"])
@@ -129,6 +119,7 @@
         _chartView.drawHoleEnabled = !_chartView.isDrawHoleEnabled;
         
         [_chartView setNeedsDisplay];
+        return;
     }
     
     if ([key isEqualToString:@"drawCenter"])
@@ -136,37 +127,39 @@
         _chartView.drawCenterTextEnabled = !_chartView.isDrawCenterTextEnabled;
         
         [_chartView setNeedsDisplay];
+        return;
     }
     
     if ([key isEqualToString:@"animateX"])
     {
         [_chartView animateWithXAxisDuration:1.4];
+        return;
     }
     
     if ([key isEqualToString:@"animateY"])
     {
         [_chartView animateWithYAxisDuration:1.4];
+        return;
     }
     
     if ([key isEqualToString:@"animateXY"])
     {
         [_chartView animateWithXAxisDuration:1.4 yAxisDuration:1.4];
+        return;
     }
     
     if ([key isEqualToString:@"spin"])
     {
         [_chartView spinWithDuration:2.0 fromAngle:_chartView.rotationAngle toAngle:_chartView.rotationAngle + 360.f];
+        return;
     }
     
-    if ([key isEqualToString:@"saveToGallery"])
-    {
-        [_chartView saveToCameraRoll];
-    }
+    [super handleOption:key forChartView:_chartView];
 }
 
 #pragma mark - ChartViewDelegate
 
-- (void)chartValueSelected:(ChartViewBase * __nonnull)chartView entry:(ChartDataEntry * __nonnull)entry dataSetIndex:(NSInteger)dataSetIndex highlight:(ChartHighlight * __nonnull)highlight
+- (void)chartValueSelected:(ChartViewBase * __nonnull)chartView entry:(ChartDataEntry * __nonnull)entry highlight:(ChartHighlight * __nonnull)highlight
 {
     NSLog(@"chartValueSelected");
 }
